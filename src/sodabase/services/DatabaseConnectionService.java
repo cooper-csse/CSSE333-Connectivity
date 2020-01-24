@@ -1,11 +1,13 @@
 package sodabase.services;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class DatabaseConnectionService {
 
 	//DO NOT EDIT THIS STRING, YOU WILL RECEIVE NO CREDIT FOR THIS TASK IF THIS STRING IS EDITED
-	private final String SampleURL = "jdbc:sqlserver://${dbServer};databaseName=${dbName};user=${user};password={${pass}}";
+	//private final String SampleURL = "jdbc:sqlserver://${dbServer};databaseName=${dbName};user=${user};password={${pass}}";
 
 	private Connection connection = null;
 
@@ -19,8 +21,18 @@ public class DatabaseConnectionService {
 	}
 
 	public boolean connect(String user, String pass) {
-		//TODO: Task 1
-		//BUILD YOUR CONNECTION STRING HERE USING THE SAMPLE URL ABOVE
+		String url = "jdbc:sqlserver://" + serverName
+				+ ";databaseName=" + databaseName
+				+ ";user=" + user
+				+ ";password={" + pass + "}";
+
+		try {
+			this.connection = DriverManager.getConnection(url);
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
 		return false;
 	}
 	
@@ -30,7 +42,12 @@ public class DatabaseConnectionService {
 	}
 	
 	public void closeConnection() {
-		//TODO: Task 1
+		try {
+			this.connection.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		this.connection = null;
 	}
 
 }
