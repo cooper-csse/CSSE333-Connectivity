@@ -1,8 +1,6 @@
 package sodabase.services;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
@@ -16,7 +14,29 @@ public class SodaService {
 	}
 
 	public boolean addSoda(String sodaName, String manf) {
-		JOptionPane.showMessageDialog(null, "Add Soda not implemented.");
+		try {
+			if (sodaName.isEmpty()) {
+				JOptionPane.showMessageDialog(null, "Er1: Soda name cannot be empty.");
+				return false;
+			} else if (manf.isEmpty()) {
+				JOptionPane.showMessageDialog(null, "Soda manufacturer cannot be empty.");
+				return false;
+			}
+			String query = "{? = call AddSoda(@sodaName = ?, @manf = ?)}";
+			CallableStatement call = this.dbService.getConnection().prepareCall(query);
+			call.registerOutParameter(1, Types.INTEGER);
+			call.setString(2, sodaName);
+			call.setString(3, manf);
+			call.execute();
+
+			if (call.getInt(1) == 2) {
+				JOptionPane.showMessageDialog(null, "Er2: Soda name must not already exist in table.");
+			}
+
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		return false;
 	}
 	

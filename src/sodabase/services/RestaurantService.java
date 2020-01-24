@@ -1,8 +1,6 @@
 package sodabase.services;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
@@ -16,8 +14,33 @@ public class RestaurantService {
 	}
 	
 	public boolean addResturant(String restName, String addr, String contact) {
-		//TODO: Task 5
-		JOptionPane.showMessageDialog(null, "Add Restaurant not implemented.");
+		try {
+			if (restName.isEmpty()) {
+				JOptionPane.showMessageDialog(null, "Er1: Restaurant name cannot be empty.");
+				return false;
+			} else if (addr.isEmpty()) {
+				JOptionPane.showMessageDialog(null, "Restaurant address cannot be empty.");
+				return false;
+			} else if (contact.isEmpty()) {
+				JOptionPane.showMessageDialog(null, "Restaurant contact cannot be empty.");
+				return false;
+			}
+			String query = "{? = call AddRestaurant(@restName = ?, @addr = ?, @contact = ?)}";
+			CallableStatement call = this.dbService.getConnection().prepareCall(query);
+			call.registerOutParameter(1, Types.INTEGER);
+			call.setString(2, restName);
+			call.setString(3, addr);
+			call.setString(4, contact);
+			call.execute();
+
+			if (call.getInt(1) == 2) {
+				JOptionPane.showMessageDialog(null, "Er2: Restaurant name must not already exist in table.");
+			}
+
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		return false;
 	}
 	

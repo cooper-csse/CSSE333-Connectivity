@@ -1,8 +1,6 @@
 package sodabase.services;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
@@ -18,7 +16,37 @@ public class SodasByRestaurantService {
 	}
 	
 	public boolean addSodaByRestaurant(String rest, String soda, double price) {
-		JOptionPane.showMessageDialog(null, "Add Soda by Restaurant not implemented.");
+		try {
+			String query = "{? = call AddSells(@sodaName = ?, @restName = ?, @price = ?)}";
+			CallableStatement call = this.dbService.getConnection().prepareCall(query);
+			call.registerOutParameter(1, Types.INTEGER);
+			call.setString(2, soda);
+			call.setString(3, rest);
+			call.setDouble(4, price);
+			call.execute();
+
+			switch (call.getInt(1)) {
+				case 1:
+					JOptionPane.showMessageDialog(null, "ERROR 1: Soda name cannot be null or empty.");
+					break;
+				case 2:
+					JOptionPane.showMessageDialog(null, "ERROR 2: Rest name cannot be null or empty.");
+					break;
+				case 3:
+					JOptionPane.showMessageDialog(null, "ERROR 3: Price cannot be null or empty.");
+					break;
+				case 4:
+					JOptionPane.showMessageDialog(null, "ERROR 4: Given soda does not exist.");
+					break;
+				case 5:
+					JOptionPane.showMessageDialog(null, "ERROR 5: Given restaurant name does not exist.");
+					break;
+			}
+
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		return false;
 	}
 
