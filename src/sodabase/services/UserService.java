@@ -4,6 +4,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.sql.CallableStatement;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Base64;
 import java.util.Random;
 
@@ -22,7 +25,7 @@ public class UserService {
 	}
 
 	public boolean useApplicationLogins() {
-		return false;
+		return true;
 	}
 	
 	public boolean login(String username, String password) {
@@ -31,7 +34,28 @@ public class UserService {
 	}
 
 	public boolean register(String username, String password) {
-		//TODO: Task 6
+		byte[] salt = this.getNewSalt();
+		String hashed = this.hashPassword(salt, password);
+
+		try {
+			String query = "{? = call Register(@Username = ?, @PasswordSalt = ?, @PasswordHash = ?)}";
+			CallableStatement call = this.dbService.getConnection().prepareCall(query);
+			call.registerOutParameter(1, Types.INTEGER);
+			call.setString(2, username);
+			call.setString(3, this.getStringFromBytes(salt));
+			call.setString(4, hashed);
+			call.execute();
+
+			if (call.getInt(1) != 0) {
+				JOptionPane.showMessageDialog(null, "Registration Failed.");
+				return false;
+			}
+
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
 		return false;
 	}
 	

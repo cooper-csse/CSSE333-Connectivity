@@ -95,4 +95,8 @@ public ArrayList<SodaByRestaurant> getSodasByRestaurants(String rest, String sod
 8.  No, it would not, as this DELETE query does not change the relation data in the database, it only
 	removes rows.
 
-9.  
+9.  Storing passwords as plaintext would make it so anyone with access to the database will be able to
+	view all of the users passwords.
+
+10. Using the same salt for everyone would mean that if two users have the hashed password, they know
+	they know that they also have the same un-hashed password.
