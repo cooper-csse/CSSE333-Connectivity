@@ -23,26 +23,8 @@ public class SodasByRestaurantService {
 	}
 
 	public ArrayList<SodaByRestaurant> getSodasByRestaurants(String rest, String soda, String price, boolean useGreaterThanEqual) {
-		//TODO: Task 3 and Task 4
 		try {
-			String query = "SELECT Restaurant, Soda, Manufacturer, RestaurantContact, Price \nFROM SodasByRestaurant\n";
-			ArrayList<String> wheresToAdd = new ArrayList<String>();
-
-			if (rest != null) wheresToAdd.add("Restaurant = ?");
-			if (soda != null) wheresToAdd.add("Soda = ?");
-			if (!price.isEmpty()) {
-				if (useGreaterThanEqual) wheresToAdd.add("Price >= ?");
-				else wheresToAdd.add("Price <= ?");
-			}
-			boolean isFirst = true;
-			while (wheresToAdd.size() > 0) {
-				if (isFirst) {
-					query += " WHERE " + wheresToAdd.remove(0);
-					isFirst = false;
-				} else {
-					query += " AND " + wheresToAdd.remove(0);
-				}
-			}
+			String query = buildParameterizedSqlStatementString(rest, soda, (price.isEmpty() ? null : Double.valueOf(price)), useGreaterThanEqual);
 
 			PreparedStatement prep = this.dbService.getConnection().prepareStatement(query);
 			int count = 0;
@@ -72,18 +54,11 @@ public class SodasByRestaurantService {
 		String sqlStatement = "SELECT Restaurant, Soda, Manufacturer, RestaurantContact, Price \nFROM SodasByRestaurant\n";
 		ArrayList<String> wheresToAdd = new ArrayList<String>();
 
-		if (rest != null) {
-			wheresToAdd.add("Restaurant = ?");
-		}
-		if (soda != null) {
-			wheresToAdd.add("Soda = ?");
-		}
+		if (rest != null) wheresToAdd.add("Restaurant = ?");
+		if (soda != null) wheresToAdd.add("Soda = ?");
 		if (price != null) {
-			if (useGreaterThanEqual) {
-				wheresToAdd.add("Price >= ?");
-			} else {
-				wheresToAdd.add("Price <= ?");
-			}
+			if (useGreaterThanEqual) wheresToAdd.add("Price >= ?");
+			else wheresToAdd.add("Price <= ?");
 		}
 		boolean isFirst = true;
 		while (wheresToAdd.size() > 0) {
