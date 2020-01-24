@@ -100,3 +100,13 @@ public ArrayList<SodaByRestaurant> getSodasByRestaurants(String rest, String sod
 
 10. Using the same salt for everyone would mean that if two users have the hashed password, they know
 	they know that they also have the same un-hashed password.
+
+11. We give the users generic error messages for registering and logging in because having access to more
+	information would increase the chances of a user gaining access to another user's account. It also
+	could allow a malicious user to probe for other user names by seeing what the error code is when
+	typing in different names.
+
+12. We do not want to store the access information to the database in plain text because it means anyone
+	can decompile our application and see the access information, which allows them to log in to the
+	database themselves, and do anything that the normal application user would be able to, i.e. deleting
+	every row in a table.

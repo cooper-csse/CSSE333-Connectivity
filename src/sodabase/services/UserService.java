@@ -4,9 +4,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
-import java.sql.CallableStatement;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.util.Base64;
 import java.util.Random;
 
@@ -30,6 +28,27 @@ public class UserService {
 	
 	public boolean login(String username, String password) {
 		//TODO: Complete this method.
+		try {
+			String query = "SELECT PasswordHash, PasswordSalt FROM [User] WHERE Username = ?";
+			PreparedStatement prep = this.dbService.getConnection().prepareStatement(query);
+			prep.setString(1, username);
+			ResultSet rs = prep.executeQuery();
+			rs.next();
+
+			int indexPassword = rs.findColumn("PasswordHash"), indexSalt = rs.findColumn("PasswordSalt");
+			String storedPass = rs.getString(indexPassword);
+			byte[] salt = dec.decode(rs.getString(indexSalt));
+			String hashed = this.hashPassword(salt, password);
+
+			if (!hashed.equals(storedPass)) {
+				JOptionPane.showMessageDialog(null, "Login Failed");
+				return false;
+			}
+
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		return false;
 	}
 
