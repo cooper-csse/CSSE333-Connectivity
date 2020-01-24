@@ -1,5 +1,8 @@
 package sodabase.services;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
@@ -18,12 +21,18 @@ public class SodaService {
 	}
 	
 	public ArrayList<String> getSodas() {
-		//TODO: Task 2
-		ArrayList<String> sodas = new ArrayList<String>();
-		sodas.add("FirstSoda");
-		sodas.add("SecondSoda");
-		sodas.add("ThirdSoda");
-		sodas.add("LastSoda");
-		return sodas;
+		ArrayList<String> rests = new ArrayList<String>();
+		String query = "SELECT name FROM Soda";
+
+		try {
+			Statement stmt = this.dbService.getConnection().createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			while (rs.next()) rests.add(rs.getString("name"));
+			stmt.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		return rests;
 	}
 }

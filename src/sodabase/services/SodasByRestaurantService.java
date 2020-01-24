@@ -1,8 +1,8 @@
 package sodabase.services;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
@@ -22,22 +22,43 @@ public class SodasByRestaurantService {
 		return false;
 	}
 
-	public ArrayList<SodaByRestaurant> getSodasByRestaurants(String rest, String soda, String price,
-			boolean useGreaterThanEqual) {
+	public ArrayList<SodaByRestaurant> getSodasByRestaurants(String rest, String soda, String price, boolean useGreaterThanEqual) {
 		//TODO: Task 3 and Task 4
 		try {
-			Statement stmt = this.dbService.getConnection().createStatement();
 			String query = "SELECT Restaurant, Soda, Manufacturer, RestaurantContact, Price \nFROM SodasByRestaurant\n";
-			ResultSet rs = stmt.executeQuery(query);
-			return parseResults(rs);
-		}
-		catch (SQLException ex) {
+			ArrayList<String> wheresToAdd = new ArrayList<String>();
+
+			if (rest != null) wheresToAdd.add("Restaurant = ?");
+			if (soda != null) wheresToAdd.add("Soda = ?");
+			if (!price.isEmpty()) {
+				if (useGreaterThanEqual) wheresToAdd.add("Price >= ?");
+				else wheresToAdd.add("Price <= ?");
+			}
+			boolean isFirst = true;
+			while (wheresToAdd.size() > 0) {
+				if (isFirst) {
+					query += " WHERE " + wheresToAdd.remove(0);
+					isFirst = false;
+				} else {
+					query += " AND " + wheresToAdd.remove(0);
+				}
+			}
+
+			PreparedStatement prep = this.dbService.getConnection().prepareStatement(query);
+			int count = 0;
+			if (rest != null) prep.setString(++count, rest);
+			if (soda != null) prep.setString(++count, soda);
+			if (!price.isEmpty()) prep.setDouble(++count, Double.parseDouble(price));
+			prep.executeQuery();
+
+			return parseResults(prep.getResultSet());
+		} catch (SQLException ex) {
 			JOptionPane.showMessageDialog(null, "Failed to retrieve sodas by restaurant.");
 			ex.printStackTrace();
-			return new ArrayList<SodaByRestaurant>();
+			return new ArrayList<>();
 		}
-		
 	}
+
 	/**
 	 * Creates a string containing ? in the correct places in the SQL statement based on the filter information provided.
 	 * 
@@ -98,6 +119,4 @@ public class SodasByRestaurantService {
 		}
 
 	}
-
-
 }

@@ -1,0 +1,98 @@
+1.  Connections should be closed because you want to be accessing the database for as short as possible.
+	This means connect both connecting and closing close to your query is best. It is also because if you
+	do not close the connections, they start to build up every time a connection is made, which all close
+	when you close the application.
+
+2.  The semicolon in the query caused the DBMS to think that there were two separate queries being made,
+	one to perform the normal select, and one to drop the table. Because the strings are just added
+	together, Java has no way of knowing if there is anything bad when concatenating them.
+
+3.
+public ArrayList<SodaByRestaurant> getSodasByRestaurants(String rest, String soda, String price, boolean useGreaterThanEqual) {
+	try {
+		String query = "SELECT Restaurant, Soda, Manufacturer, RestaurantContact, Price \nFROM SodasByRestaurant\n";
+		ArrayList<String> wheresToAdd = new ArrayList<String>();
+
+		if (rest != null) wheresToAdd.add("Restaurant = ?");
+		if (soda != null) wheresToAdd.add("Soda = ?");
+		if (!price.isEmpty()) {
+			if (useGreaterThanEqual) wheresToAdd.add("Price >= ?");
+			else wheresToAdd.add("Price <= ?");
+		}
+		boolean isFirst = true;
+		while (wheresToAdd.size() > 0) {
+			if (isFirst) {
+				query += " WHERE " + wheresToAdd.remove(0);
+				isFirst = false;
+			} else {
+				query += " AND " + wheresToAdd.remove(0);
+			}
+		}
+
+		PreparedStatement prep = this.dbService.getConnection().prepareStatement(query);
+		int count = 0;
+		if (rest != null) prep.setString(++count, rest);
+		if (soda != null) prep.setString(++count, soda);
+		if (!price.isEmpty()) prep.setString(++count, price);
+		prep.executeQuery();
+
+		return parseResults(prep.getResultSet());
+	} catch (SQLException ex) {
+		JOptionPane.showMessageDialog(null, "Failed to retrieve sodas by restaurant.");
+		ex.printStackTrace();
+		return new ArrayList<>();
+	}
+}
+
+4.  It remained in the database, because the prepared statement check to see if all of the values being
+	inserted into the query are valid variables of the type specified. This means it checked if the
+	string that contained the injection had an injection in it, which it did, so it threw an error.
+
+5.
+public ArrayList<SodaByRestaurant> getSodasByRestaurants(String rest, String soda, String price, boolean useGreaterThanEqual) {
+	try {
+		String query = "SELECT Restaurant, Soda, Manufacturer, RestaurantContact, Price \nFROM SodasByRestaurant\n";
+		ArrayList<String> wheresToAdd = new ArrayList<String>();
+
+		if (rest != null) wheresToAdd.add("Restaurant = ?");
+		if (soda != null) wheresToAdd.add("Soda = ?");
+		if (!price.isEmpty()) {
+			if (useGreaterThanEqual) wheresToAdd.add("Price >= ?");
+			else wheresToAdd.add("Price <= ?");
+		}
+		boolean isFirst = true;
+		while (wheresToAdd.size() > 0) {
+			if (isFirst) {
+				query += " WHERE " + wheresToAdd.remove(0);
+				isFirst = false;
+			} else {
+				query += " AND " + wheresToAdd.remove(0);
+			}
+		}
+
+		PreparedStatement prep = this.dbService.getConnection().prepareStatement(query);
+		int count = 0;
+		if (rest != null) prep.setString(++count, rest);
+		if (soda != null) prep.setString(++count, soda);
+		if (!price.isEmpty()) prep.setDouble(++count, Double.parseDouble(price));
+		prep.executeQuery();
+
+		return parseResults(prep.getResultSet());
+	} catch (SQLException ex) {
+		JOptionPane.showMessageDialog(null, "Failed to retrieve sodas by restaurant.");
+		ex.printStackTrace();
+		return new ArrayList<>();
+	}
+}
+
+6.  The table remained, because the program threw an error before the query was successfully performed.
+	Converting to a double helps, because if the string were to contain non-numeric characters, the cast
+	would fail, thus not allowing the query to take place.
+
+7.  This change stops this specific injection because it stops the user from being able to drop relation
+	data, i.e. tables, and only lets them insert query and delete.
+
+8.  No, it would not, as this DELETE query does not change the relation data in the database, it only
+	removes rows.
+
+9.  
